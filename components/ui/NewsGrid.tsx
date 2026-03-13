@@ -45,10 +45,6 @@ export default function NewsGrid() {
               {item.title}
             </h3>
 
-            <p className="text-gray-600 text-sm mb-4">
-              {item.description?.slice(0, 120)}...
-            </p>
-
             <span className="text-gray-400 text-xs">
               {new Date(item.publishedAt).toLocaleDateString()}
             </span>
