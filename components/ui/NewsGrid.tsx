@@ -3,11 +3,11 @@
 import { useEffect, useState } from "react";
 
 type News = {
-  title: string;
-  link: string;
-  description: string;
-  publishedAt: string;
-};
+  title: string
+  link: string
+  publishedAt: string
+  source: string
+}
 
 export default function NewsGrid() {
   const [news, setNews] = useState<News[]>([]);
