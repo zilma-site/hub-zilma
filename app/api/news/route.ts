@@ -3,23 +3,34 @@ export const dynamic = "force-dynamic";
 export async function GET() {
   try {
     const res = await fetch(
-      "https://api.rss2json.com/v1/api.json?rss_url=https://www.stj.jus.br/sites/portalp/rss/noticias.xml",
+      "https://api.allorigins.win/raw?url=https://www.stj.jus.br/sites/portalp/rss/noticias.xml",
       {
         cache: "no-store",
       }
     );
 
-    const data = await res.json();
+    const xml = await res.text();
 
-    const news = data.items.slice(0, 10).map((item: any) => ({
-      title: item.title,
-      link: item.link,
-      description: item.description,
-      publishedAt: item.pubDate,
-      source: "STJ",
-    }));
+    const items = xml
+      .split("<item>")
+      .slice(1)
+      .map((item) => {
+        const title = item.match(/<title>(.*?)<\/title>/)?.[1] ?? "";
+        const link = item.match(/<link>(.*?)<\/link>/)?.[1] ?? "";
+        const pubDate = item.match(/<pubDate>(.*?)<\/pubDate>/)?.[1] ?? "";
+        const description =
+          item.match(/<description>(.*?)<\/description>/)?.[1] ?? "";
 
-    return Response.json(news);
+        return {
+          title,
+          link,
+          description,
+          publishedAt: pubDate,
+          source: "STJ",
+        };
+      });
+
+    return Response.json(items.slice(0, 10));
   } catch (error) {
     console.error(error);
     return Response.json([]);
