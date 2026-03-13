@@ -1,6 +1,9 @@
 export const dynamic = "force-dynamic";
 
-async function parseRSS(xml: string, source: string) {
+async function getNews(url: string, source: string) {
+  const res = await fetch(url);
+  const xml = await res.text();
+
   return xml
     .split("<item>")
     .slice(1)
@@ -14,33 +17,22 @@ async function parseRSS(xml: string, source: string) {
 
 export async function GET() {
   try {
-    const stjRes = await fetch(
-      "https://news.google.com/rss/search?q=site:stj.jus.br&hl=pt-BR&gl=BR&ceid=BR:pt"
+    const stj = await getNews(
+      "https://news.google.com/rss/search?q=STJ+site:stj.jus.br&hl=pt-BR&gl=BR&ceid=BR:pt",
+      "STJ"
     );
 
-    const stfRes = await fetch(
-      "https://www.stf.jus.br/portal/rss/noticiaRss.asp"
+    const stf = await getNews(
+      "https://news.google.com/rss/search?q=STF+site:stf.jus.br&hl=pt-BR&gl=BR&ceid=BR:pt",
+      "STF"
     );
 
-    const tstRes = await fetch(
-      "https://www.tst.jus.br/rss"
+    const tst = await getNews(
+      "https://news.google.com/rss/search?q=TST+site:tst.jus.br&hl=pt-BR&gl=BR&ceid=BR:pt",
+      "TST"
     );
 
-    const stjXML = await stjRes.text();
-    const stfXML = await stfRes.text();
-    const tstXML = await tstRes.text();
-
-    const stj = await parseRSS(stjXML, "STJ");
-    const stf = await parseRSS(stfXML, "STF");
-    const tst = await parseRSS(tstXML, "TST");
-
-    const news = [...stf, ...stj, ...tst]
-      .sort(
-        (a, b) =>
-          new Date(b.publishedAt).getTime() -
-          new Date(a.publishedAt).getTime()
-      )
-      .slice(0, 30);
+    const news = [...stf, ...stj, ...tst].slice(0, 30);
 
     return Response.json(news);
   } catch (error) {
