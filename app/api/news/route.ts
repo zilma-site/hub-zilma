@@ -14,8 +14,12 @@ export async function GET() {
       .map((item) => ({
         title: item.match(/<title>(.*?)<\/title>/)?.[1] ?? "",
         link: item.match(/<link>(.*?)<\/link>/)?.[1] ?? "",
-        description:
-          item.match(/<description>(.*?)<\/description>/)?.[1] ?? "",
+        description: item
+          .match(/<description>(.*?)<\/description>/)?.[1]
+          ?.replace(/<[^>]*>/g, "")
+          .replace(/&lt;.*?&gt;/g, "")
+          ?? "",
+
         publishedAt:
           item.match(/<pubDate>(.*?)<\/pubDate>/)?.[1] ?? "",
         source: "STJ",
