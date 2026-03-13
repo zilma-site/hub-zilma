@@ -3,16 +3,7 @@ export const dynamic = "force-dynamic";
 export async function GET() {
   try {
     const res = await fetch(
-      "https://www.stj.jus.br/sites/portalp/rss/noticias.xml",
-      {
-        headers: {
-          "User-Agent":
-            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/120 Safari/537.36",
-          "Accept":
-            "application/rss+xml,application/xml;q=0.9,text/xml;q=0.8",
-        },
-        cache: "no-store",
-      }
+      "https://news.google.com/rss/search?q=site:stj.jus.br&hl=pt-BR&gl=BR&ceid=BR:pt"
     );
 
     const xml = await res.text();
