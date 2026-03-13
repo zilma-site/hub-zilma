@@ -26,7 +26,7 @@ export async function GET() {
   );
 
   const stf = await getNews(
-    "https://news.google.com/rss/search?q=site:stf.jus.br&hl=pt-BR&gl=BR&ceid=BR:pt",
+    "https://news.google.com/rss/search?q=STF+site:stf.jus.br&hl=pt-BR&gl=BR&ceid=BR:pt",
     "STF"
   );
 
