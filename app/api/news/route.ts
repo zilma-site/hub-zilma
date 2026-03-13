@@ -1,27 +1,37 @@
 export const dynamic = "force-dynamic";
 
+async function getNews(url: string, source: string) {
+  const res = await fetch(url);
+  const xml = await res.text();
+
+  return xml
+    .split("<item>")
+    .slice(1)
+    .map((item) => ({
+      title: item.match(/<title>(.*?)<\/title>/)?.[1] ?? "",
+      link: item.match(/<link>(.*?)<\/link>/)?.[1] ?? "",
+      publishedAt: item.match(/<pubDate>(.*?)<\/pubDate>/)?.[1] ?? "",
+      source,
+    }));
+}
+
 export async function GET() {
-  try {
-    const res = await fetch(
-      "https://news.google.com/rss/search?q=site:stj.jus.br&hl=pt-BR&gl=BR&ceid=BR:pt"
-    );
+  const stj = await getNews(
+    "https://news.google.com/rss/search?q=site:stj.jus.br&hl=pt-BR&gl=BR&ceid=BR:pt",
+    "STJ"
+  );
 
-    const xml = await res.text();
+  const stf = await getNews(
+    "https://news.google.com/rss/search?q=site:stf.jus.br&hl=pt-BR&gl=BR&ceid=BR:pt",
+    "STF"
+  );
 
-    const items = xml
-      .split("<item>")
-      .slice(1)
-      .map((item) => ({
-        title: item.match(/<title>(.*?)<\/title>/)?.[1] ?? "",
-        link: item.match(/<link>(.*?)<\/link>/)?.[1] ?? "",
-        publishedAt:
-          item.match(/<pubDate>(.*?)<\/pubDate>/)?.[1] ?? "",
-        source: "STJ",
-      }));
+  const tst = await getNews(
+    "https://news.google.com/rss/search?q=site:tst.jus.br&hl=pt-BR&gl=BR&ceid=BR:pt",
+    "TST"
+  );
 
-    return Response.json(items.slice(0, 10));
-  } catch (error) {
-    console.error(error);
-    return Response.json([]);
-  }
+  const news = [...stf, ...stj, ...tst].slice(0, 30);
+
+  return Response.json(news);
 }

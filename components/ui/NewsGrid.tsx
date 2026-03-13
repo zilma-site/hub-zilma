@@ -42,7 +42,7 @@ export default function NewsGrid() {
             className="border border-gray-300 p-6 bg-white shadow-md hover:shadow-xl transition"
           >
             <h3 className="text-lg text-black font-semibold mb-3">
-              {item.title}
+              [{item.source}] {item.title}
             </h3>
 
             <span className="text-gray-400 text-xs">
