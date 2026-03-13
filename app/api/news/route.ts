@@ -1,22 +1,16 @@
 export const runtime = "nodejs";
 
-export async function GET() {
+async function parseRSS(url: string, source: string) {
   try {
-    const res = await fetch(
-      "https://www.stj.jus.br/sites/portalp/rss/noticias.xml",
-      {
-        headers: {
-          "User-Agent": "Mozilla/5.0",
-          Accept: "application/rss+xml, application/xml;q=0.9",
-        },
-        cache: "no-store",
-      }
-    );
+    const res = await fetch(url, {
+      headers: {
+        "User-Agent": "Mozilla/5.0",
+        Accept: "application/rss+xml, application/xml",
+      },
+      next: { revalidate: 600 },
+    });
 
-    if (!res.ok) {
-      console.error("Erro HTTP:", res.status);
-      return Response.json([]);
-    }
+    if (!res.ok) return [];
 
     const xml = await res.text();
 
@@ -24,24 +18,14 @@ export async function GET() {
       .split("<item>")
       .slice(1)
       .map((item) => {
-        const title =
-          item.match(/<title><!\[CDATA\[(.*?)\]\]><\/title>/)?.[1] ||
-          item.match(/<title>(.*?)<\/title>/)?.[1] ||
-          "";
-
-        const link =
-          item.match(/<link>(.*?)<\/link>/)?.[1] || "";
-
+        const title = item.match(/<title>(.*?)<\/title>/)?.[1] ?? "";
+        const link = item.match(/<link>(.*?)<\/link>/)?.[1] ?? "";
+        const pubDate = item.match(/<pubDate>(.*?)<\/pubDate>/)?.[1] ?? "";
         const description =
-          item.match(/<description><!\[CDATA\[(.*?)\]\]><\/description>/)?.[1] ||
-          item.match(/<description>(.*?)<\/description>/)?.[1] ||
-          "";
-
-        const pubDate =
-          item.match(/<pubDate>(.*?)<\/pubDate>/)?.[1] || "";
+          item.match(/<description>(.*?)<\/description>/)?.[1] ?? "";
 
         return {
-          source: "STJ",
+          source,
           title,
           link,
           description,
@@ -49,9 +33,31 @@ export async function GET() {
         };
       });
 
-    return Response.json(items.slice(0, 10));
+    return items;
+  } catch {
+    return [];
+  }
+}
+
+export async function GET() {
+  try {
+    const stf = await parseRSS(
+      "https://www.stf.jus.br/portal/rss/noticiaRss.asp",
+      "STF"
+    );
+
+    const stj = await parseRSS(
+      "https://www.stj.jus.br/sites/portalp/rss/noticias.xml",
+      "STJ"
+    );
+
+    const news = [...stf, ...stj]
+      .sort((a, b) => new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime())
+      .slice(0, 20);
+
+    return Response.json(news);
   } catch (error) {
-    console.error("Erro RSS:", error);
+    console.error(error);
     return Response.json([]);
   }
 }
