@@ -30,7 +30,13 @@ export async function GET() {
     "STF"
   );
 
-  const news = [...stj, ...stf].slice(0, 30);
+  const news = [...stj, ...stf]
+    .sort(
+      (a, b) =>
+        new Date(b.publishedAt).getTime() -
+        new Date(a.publishedAt).getTime()
+    )
+    .slice(0, 30);
 
   return Response.json(news);
 }
