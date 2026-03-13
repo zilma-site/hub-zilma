@@ -1,26 +1,33 @@
-export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
 
 export async function GET() {
   try {
     const res = await fetch(
-      "https://api.rss2json.com/v1/api.json?rss_url=https://www.stj.jus.br/sites/portalp/rss/noticias.xml",
-      { cache: "no-store" }
+      "https://api.rss2json.com/v1/api.json?rss_url=https://www.stj.jus.br/sites/portalp/rss/noticias.xml"
     );
 
     const data = await res.json();
 
-    const news =
-      data.items?.slice(0, 10).map((item: any) => ({
-        source: "STJ",
-        title: item.title,
-        link: item.link,
-        description: item.description,
-        publishedAt: item.pubDate,
-      })) ?? [];
+    const news = data.items.map((item: any) => ({
+      title: item.title,
+      link: item.link,
+      description: item.description,
+      publishedAt: item.pubDate,
+      source: "STJ",
+    }));
 
-    return Response.json(news);
+    return new Response(JSON.stringify(news.slice(0, 10)), {
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
   } catch (error) {
     console.error(error);
-    return Response.json([]);
+
+    return new Response(JSON.stringify([]), {
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
   }
 }
