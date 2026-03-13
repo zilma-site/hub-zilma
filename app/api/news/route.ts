@@ -1,26 +1,14 @@
-import Parser from "rss-parser";
-
 export const runtime = "nodejs";
-
-const parser = new Parser({
-  customFields: {
-    item: [
-      ["content:encoded", "contentEncoded"],
-    ],
-  },
-});
 
 export async function GET() {
   try {
     const res = await fetch(
-      "https://res.stj.jus.br/hrestp-c-portalp/RSS.xml",
+      "https://www.stj.jus.br/sites/portalp/rss/noticias.xml",
       {
         headers: {
-          "User-Agent":
-            "Mozilla/5.0 (Windows NT 10.0; Win64; x64)",
-          "Accept": "application/rss+xml, application/xml;q=0.9",
+          "User-Agent": "Mozilla/5.0",
+          Accept: "application/rss+xml, application/xml;q=0.9",
         },
-        redirect: "follow",
         cache: "no-store",
       }
     );
@@ -31,23 +19,39 @@ export async function GET() {
     }
 
     const xml = await res.text();
-    const data = await parser.parseString(xml);
 
-    const news =
-      data.items?.slice(0, 10).map(item => ({
-        source: "STJ",
-        title: item.title ?? "",
-        link: item.link ?? "",
-        description:
-          item.contentSnippet ??
-          item.contentEncoded ??
-          "",
-        publishedAt: item.pubDate ?? "",
-      })) ?? [];
+    const items = xml
+      .split("<item>")
+      .slice(1)
+      .map((item) => {
+        const title =
+          item.match(/<title><!\[CDATA\[(.*?)\]\]><\/title>/)?.[1] ||
+          item.match(/<title>(.*?)<\/title>/)?.[1] ||
+          "";
 
-    return Response.json(news);
+        const link =
+          item.match(/<link>(.*?)<\/link>/)?.[1] || "";
+
+        const description =
+          item.match(/<description><!\[CDATA\[(.*?)\]\]><\/description>/)?.[1] ||
+          item.match(/<description>(.*?)<\/description>/)?.[1] ||
+          "";
+
+        const pubDate =
+          item.match(/<pubDate>(.*?)<\/pubDate>/)?.[1] || "";
+
+        return {
+          source: "STJ",
+          title,
+          link,
+          description,
+          publishedAt: pubDate,
+        };
+      });
+
+    return Response.json(items.slice(0, 10));
   } catch (error) {
-    console.error("Erro STJ RSS:", error);
+    console.error("Erro RSS:", error);
     return Response.json([]);
   }
 }
